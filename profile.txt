@@ -1,0 +1,131 @@
+ <script>
+
+var map;
+var x =  document.getElementById('latss').value;
+
+var y = document.getElementById('lngss').value;
+
+function initMap() {
+
+
+  var pyrmont = new google.maps.LatLng(x,y);
+
+  map = new google.maps.Map(document.getElementById('map'));
+    map.setZoom(13);      // This will trigger a zoom_changed on the map
+map.setCenter(new google.maps.LatLng(x, y));
+
+  var service = new google.maps.places.PlacesService(map);
+  service.nearbySearch({
+    location: pyrmont,
+    radius: 500,
+    types: ['resturant']
+  }, processResults);
+}
+
+function processResults(results, status, pagination) {
+  if (status !== google.maps.places.PlacesServiceStatus.OK) {
+    return;
+  } else {
+    createMarkers(results);
+
+    if (pagination.hasNextPage) {
+      var moreButton = document.getElementById('more');
+
+      moreButton.disabled = false;
+
+      moreButton.addEventListener('click', function() {
+        moreButton.disabled = true;
+        pagination.nextPage();
+      });
+    }
+  }
+}
+
+function createMarkers(places) {
+  var bounds = new google.maps.LatLngBounds();
+  var placesList = document.getElementById('places');
+
+  for (var i = 0, place; place = places[i]; i++) {
+    var image = {
+      url: place.icon,
+      size: new google.maps.Size(71, 71),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(17, 34),
+      scaledSize: new google.maps.Size(25, 25)
+    };
+
+    var marker = new google.maps.Marker({
+      map: map,
+      icon: image,
+      title: place.name,
+      position: place.geometry.location
+    });
+
+    placesList.innerHTML += '<li>' + place.name + '</li>';
+
+    bounds.extend(place.geometry.location);
+  }
+  map.fitBounds(bounds);
+}
+
+    </script>
+<div id="map"></div>
+    <div id="right-panel">
+      <h2>Results</h2>
+      <ul id="places"></ul>
+      <button id="more">More results</button>
+    </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAvHdLqVJday8_qQiWMl-9-4hvuztjAhOw&signed_in=true&libraries=places&callback=initMap" async defer></script>
+
+    <?php
+echo "<form>";
+ echo "<input type='hidden' id='latss' name='lat' value=".$lat.">";
+
+echo "<input type='hidden' id='lngss' name = 'lng' value=".$lng.">";
+echo "</form>";
+?>
+
+<?php
+
+$session = $_SESSION['userid'];
+$sql = "SELECT place_x, place_y from users  
+      where id= $session " ;
+  $result = mysql_query($sql);
+
+  while($data = mysql_fetch_object($result)){
+    $posts[] = array(   'place_x' => $data->place_x, 
+               
+              'place_y' => $data->place_y
+          );
+  
+  }
+
+
+$lat =  $posts['0']['place_x'];
+$lng =  $posts['0']['place_y'];
+
+
+  foreach ($posts as $key => $list){
+  echo "<tr valign='top'>\n";
+  echo "<td>".$list['place_x'] ."</td>\n";
+  echo "<td>".$list['place_y'] ."<br/>\n";
+  
+  echo "</tr>\n";
+
+}
+
+?>
+
+
+?php
+$sql = "SELECT body, stamp FROM posts
+   WHERE user_id = '$userid' ORDER BY stamp DESC";
+  $result = mysql_query($sql);
+
+  while($data = mysql_fetch_object($result)){
+    $posts[] = array(   'stamp' => $data->stamp, 
+              'userid' => $userid, 
+              'body' => $data->body
+          );
+    echo "hello activity are is this bitches";
+?>
